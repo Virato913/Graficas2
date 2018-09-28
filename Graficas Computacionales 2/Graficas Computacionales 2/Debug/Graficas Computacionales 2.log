@@ -1,0 +1,10 @@
+﻿  Shader.cpp
+  GraphicsAPI.cpp
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas_computacionales_2\graficas computacionales 2\graficas computacionales 2\graphicsapi.h(26): warning C4316: 'DirectX::XMMATRIX': object allocated on the heap may not be aligned 16
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas_computacionales_2\graficas computacionales 2\graficas computacionales 2\graphicsapi.h(27): warning C4316: 'DirectX::XMMATRIX': object allocated on the heap may not be aligned 16
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas_computacionales_2\graficas computacionales 2\graficas computacionales 2\graphicsapi.h(28): warning C4316: 'DirectX::XMMATRIX': object allocated on the heap may not be aligned 16
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas_computacionales_2\graficas computacionales 2\graficas computacionales 2\graphicsapi.h(87): warning C4316: 'GraphicsData': object allocated on the heap may not be aligned 16
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas_computacionales_2\graficas computacionales 2\graficas computacionales 2\graphicsapi.h(102): warning C4316: 'Camera': object allocated on the heap may not be aligned 16
+  Generating Code...
+  Graficas Computacionales 2.vcxproj -> C:\Users\Casa\Documents\Beto\Gráficas computacionales 2\Graficas_Computacionales_2\Graficas Computacionales 2\Debug\Graficas Computacionales 2.exe
+  Graficas Computacionales 2.vcxproj -> C:\Users\Casa\Documents\Beto\Gráficas computacionales 2\Graficas_Computacionales_2\Graficas Computacionales 2\Debug\Graficas Computacionales 2.pdb (Full PDB)
