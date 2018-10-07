@@ -8,7 +8,7 @@
 #define MAX_LOADSTRING 100
 
 // Global Variables:
-GraphicsAPI gfxapi;
+CGraphicsAPI gfxAPI;
 
 HWND hWnd;
 HINSTANCE hInst;                                // current instance
@@ -42,7 +42,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-	gfxapi.Initialize(hWnd);
+	// 
+	if (FAILED(gfxAPI.Init(hWnd)))
+	{
+		return 0;
+	}
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GRAFICASCOMPUTACIONALES2));
 
@@ -51,13 +55,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-		gfxapi.Frame();
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		gfxAPI.Render();
     }
+
+	gfxAPI.Clear();
 
     return (int) msg.wParam;
 }
