@@ -28,6 +28,14 @@ void CDeviceContext::Render(CRenderTargetView* renderTargetView)
 	m_DeviceContext->ClearRenderTargetView(renderTargetView->GetRenderTargetView(), ClearColor);
 }
 
+void CDeviceContext::Draw(CVertexShader* vertexShader, CPixelShader* pixelShader, ID3D11Buffer* constantBuffer)
+{
+	m_DeviceContext->VSSetShader(vertexShader->GetShader(), NULL, 0);
+	m_DeviceContext->VSSetConstantBuffers(0, 1, &constantBuffer);
+	m_DeviceContext->PSSetShader(pixelShader->GetShader(), NULL, 0);
+	m_DeviceContext->DrawIndexed(36, 0, 0);
+}
+
 void CDeviceContext::Clear()
 {
 	if (m_DeviceContext)
@@ -38,6 +46,11 @@ void CDeviceContext::ClearState()
 {
 	if (m_DeviceContext)
 		m_DeviceContext->ClearState();
+}
+
+ID3D11DeviceContext* CDeviceContext::GetDC()
+{
+	return m_DeviceContext;
 }
 
 ID3D11DeviceContext** CDeviceContext::GetDeviceContext()
