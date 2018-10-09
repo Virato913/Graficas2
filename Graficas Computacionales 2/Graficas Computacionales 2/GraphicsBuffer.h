@@ -148,7 +148,7 @@ public:
 
 	void setHardwareBuffer(ID3D11DeviceContext* deviceContext)
 	{
-		deviceContext->IASetIndexBuffer(GetBufferPointer(), DXGI_FORMAT_R8_UINT, 0);
+		deviceContext->IASetIndexBuffer(GetBufferPointer(), DXGI_FORMAT_R16_UINT, 0);
 	}
 
 	void write(ID3D11DeviceContext* pDeviceContext, void* pData, size_t numBytes)

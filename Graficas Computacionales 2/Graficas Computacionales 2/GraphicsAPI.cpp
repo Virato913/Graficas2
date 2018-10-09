@@ -119,18 +119,18 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 
 void CGraphicsAPI::Render()
 {
-	//Update();
+	Update();
 
-	t += (float)xPI * 0.0125f;
-	XMatRotationYLH(m_World, t);
+	/*t += (float)xPI * 0.0125f;
+	XMatRotationYLH(m_World, t);*/
 
 	m_DeviceContext->Render(m_RenderTargetView);
 
-	ConstantBuffer cb;
+	/*ConstantBuffer cb;
 	XMatTranspose(cb.World, m_World);
 	XMatTranspose(cb.View, m_View);
 	XMatTranspose(cb.Projection, m_Projection);
-	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb, 0, 0);
+	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb, 0, 0);*/
 
 	m_DeviceContext->Draw(m_VertexShader, m_PixelShader, m_ConstantBuffer->GetBufferPointer());
 	m_SwapChain->Render();
@@ -141,7 +141,7 @@ void CGraphicsAPI::Update()
 	DWORD dwTimeCur = GetTickCount();
 	if (dwTimeStart == 0)
 		dwTimeStart = dwTimeCur;
-	t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	t = (dwTimeCur - dwTimeStart) / 10000000.0f;
 	XMatRotationYLH(m_World, t);
 	ConstantBuffer cb;
 	XMatTranspose(cb.World, m_World);

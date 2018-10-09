@@ -50,10 +50,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GRAFICASCOMPUTACIONALES2));
 
-    MSG msg;
+	MSG msg = { 0 };
 
     // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    /*while (GetMessage(&msg, nullptr, 0, 0))
     {
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
@@ -61,7 +61,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			DispatchMessage(&msg);
 		}
 		gfxAPI.Render();
-    }
+    }*/
+
+	while (WM_QUIT != msg.message)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			gfxAPI.Render();
+		}
+	}
 
 	gfxAPI.Clear();
 
