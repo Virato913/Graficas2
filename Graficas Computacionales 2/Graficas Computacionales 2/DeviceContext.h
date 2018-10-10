@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DepthStencilView.h"
 #include "RenderTargetView.h"
 #include "Shader.h"
 #include "Viewport.h"
@@ -13,9 +14,9 @@ private:
 public:
 	CDeviceContext();
 	~CDeviceContext();
-	void SetRTV(CRenderTargetView* renderTargetView);
+	void SetRT(CRenderTargetView* renderTargetView, CDepthStencilView* depthStencilView);
 	void SetVP(CViewport* viewport);
-	void Render(CRenderTargetView* renderTargetView);
+	void Render(CRenderTargetView* renderTargetView, CDepthStencilView* depthStencilView);
 	void Draw(CVertexShader* vertexShader, CPixelShader* pixelShader, ID3D11Buffer* constantBuffer);
 	void Clear();
 	void ClearState();

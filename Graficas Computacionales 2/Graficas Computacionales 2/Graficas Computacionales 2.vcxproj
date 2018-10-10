@@ -152,6 +152,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DepthStencilView.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="Graficas Computacionales 2.h" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DepthStencilView.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="Graficas Computacionales 2.cpp" />

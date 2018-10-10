@@ -4,17 +4,17 @@
 CGraphicsAPI::CGraphicsAPI()
 {
 	m_ConstantBuffer = new CConstantBuffer<ConstantBuffer>();
+	m_DepthStencilView = new CDepthStencilView();
 	m_Device = new CDevice();
 	m_DeviceContext = new CDeviceContext();
 	m_IndexBuffer = new CIndexBuffer<WORD>();
 	m_InputLayout = new CInputLayout();
 	m_PixelShader = new CPixelShader();
+	m_PixelShaderSolid = new CPixelShader();
 	m_RenderTargetView = new CRenderTargetView();
 	m_SwapChain = new CSwapChain();
 	m_VertexBuffer = new CVertexBuffer<SimpleVertex>();
 	m_VertexShader = new CVertexShader();
-	t = 0;
-	dwTimeStart = 0;
 }
 
 CGraphicsAPI::~CGraphicsAPI()
@@ -39,7 +39,16 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 	if (FAILED(hr))
 		return hr;
 
-	m_DeviceContext->SetRTV(m_RenderTargetView);
+	m_DepthStencil = new CDepthStencil(width, height);
+	hr = m_DepthStencil->CreateDepthStencil(m_Device->GetDevice());
+	if (FAILED(hr))
+		return hr;
+
+	hr = m_DepthStencilView->CreateDepthStencilView(m_Device->GetDevice(), m_DepthStencil->GetTexture());
+	if (FAILED(hr))
+		return hr;
+
+	m_DeviceContext->SetRT(m_RenderTargetView, m_DepthStencilView);
 
 	CViewport* vp = new CViewport();
 	vp->Create(width, height);
@@ -51,8 +60,8 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 		return hr;
 
 	m_InputLayout->reserve(2);
-	m_InputLayout->add("POSITION", (UINT)0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
-	m_InputLayout->add("COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	m_InputLayout->add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	m_InputLayout->add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0);
 	m_InputLayout->createInputLayout(m_Device->GetDevice(), m_VertexShader->GetBLOB()->GetBufferPointer(), m_VertexShader->GetBLOB()->GetBufferSize());
 	m_InputLayout->setInputLayout(m_DeviceContext->GetDC());
 
@@ -60,19 +69,44 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 	if (FAILED(hr))
 		return hr;
 
+	hr = m_PixelShaderSolid->CreateShader(m_Device->GetDevice(), "PSSolid");
+	if (FAILED(hr))
+		return hr;
+
 	m_VertexBuffer->reserve(8);
 	SimpleVertex vertices[] =
 	{
-		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f, 1.0f) },
-		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 1.0f, 1.0f, 1.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(1.0f, 0.0f, 1.0f, 1.0f) },
-		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(1.0f, 1.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 0.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
+
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(0.0f, -1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
+
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(-1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
+
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
+
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(0.0f, 0.0f, -1.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
+
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
 	};
-	m_VertexBuffer->add(vertices,8);
+	m_VertexBuffer->add(vertices, 24);
 	m_VertexBuffer->createHardwareBuffer(m_Device->GetDevice());
 	m_VertexBuffer->setHardwareBuffer(m_DeviceContext->GetDC(), sizeof(SimpleVertex), 0);
 
@@ -82,20 +116,20 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 		3,1,0,
 		2,1,3,
 
-		0,5,4,
-		1,5,0,
-
-		3,4,7,
-		0,4,3,
-
-		1,6,5,
-		2,6,1,
-
-		2,7,6,
-		3,7,2,
-
 		6,4,5,
 		7,4,6,
+
+		11,9,8,
+		10,9,11,
+
+		14,12,13,
+		15,12,14,
+
+		19,17,16,
+		18,17,19,
+
+		22,20,21,
+		23,20,22
 	};
 	m_IndexBuffer->add(indices,36);
 	m_IndexBuffer->createHardwareBuffer(m_Device->GetDevice());
@@ -107,47 +141,138 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 
 	XMatIdentity(m_World);
 
-	XVECTOR3 Eye(0.0f, 1.0f, -5.0f, 0.0f);
+	XVECTOR3 Eye(0.0f, 4.0f, -10.0f, 0.0f);
 	XVECTOR3 At(0.0f, 1.0f, 0.0f, 0.0f);
 	XVECTOR3 Up(0.0f, 1.0f, 0.0f, 0.0f);
 	XMatViewLookAtLH(m_View, Eye, At, Up);
 
-	XMatPerspectiveLH(m_Projection, xHALF_PI, width / (FLOAT)height, 0.01f, 100.0f);
+	XMatPerspectiveLH(m_Projection, xHALF_PI / 2.0f, width / (FLOAT)height, 0.01f, 100.0f);
 
 	return hr;
 }
 
+//void CGraphicsAPI::Render()
+//{
+//	Update();
+//
+//	/*t += (float)xPI * 0.0125f;
+//	XMatRotationYLH(m_World, t);*/
+//
+//	m_DeviceContext->Render(m_RenderTargetView, m_DepthStencilView);
+//
+//	/*ConstantBuffer cb;
+//	XMatTranspose(cb.World, m_World);
+//	XMatTranspose(cb.View, m_View);
+//	XMatTranspose(cb.Projection, m_Projection);
+//	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb, 0, 0);*/
+//
+//	m_DeviceContext->Draw(m_VertexShader, m_PixelShader, m_ConstantBuffer->GetBufferPointer());
+//	m_SwapChain->Render();
+//}
+
 void CGraphicsAPI::Render()
 {
-	Update();
+	static float t = 0.0f;
+	static DWORD dwTimeStart = 0;
+	DWORD dwTimeCur = GetTickCount();
+	if (dwTimeStart == 0)
+		dwTimeStart = dwTimeCur;
+	t = (dwTimeCur - dwTimeStart) / 100000.0f;
 
-	/*t += (float)xPI * 0.0125f;
-	XMatRotationYLH(m_World, t);*/
+	XMatRotationYLH(m_World, Deg2Rad(t));
 
-	m_DeviceContext->Render(m_RenderTargetView);
+	XVECTOR3 LightDirs[2] =
+	{
+		XVECTOR3(-0.577f, 0.577f, -0.577f, 1.0f),
+		XVECTOR3(0.0f, 0.0f, -1.0f, 1.0f),
+	};
+	XVECTOR3 LightColors[2] =
+	{
+		XVECTOR3(0.5f, 0.5f, 0.5f, 1.0f),
+		XVECTOR3(0.5f, 0.0f, 0.0f, 1.0f)
+	};
 
-	/*ConstantBuffer cb;
-	XMatTranspose(cb.World, m_World);
-	XMatTranspose(cb.View, m_View);
-	XMatTranspose(cb.Projection, m_Projection);
-	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb, 0, 0);*/
+	XMATRIX44 Rotate;
+	XMatRotationYLH(Rotate, Deg2Rad(-2.0f*t));
+	XVECTOR3 LightDir = LightDirs[1];
+	XVecTransformLH(LightDirs[1], LightDir, Rotate);
 
-	m_DeviceContext->Draw(m_VertexShader, m_PixelShader, m_ConstantBuffer->GetBufferPointer());
+	float color[4] = { 0.0f,0.125f,0.3f,1.0f };
+	m_DeviceContext->GetDC()->ClearRenderTargetView(m_RenderTargetView->GetRenderTargetView(), color);
+	m_DeviceContext->GetDC()->ClearDepthStencilView(m_DepthStencilView->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	ConstantBuffer cb1;
+	XMatTranspose(cb1.World, m_World);
+	XMatTranspose(cb1.View, m_View);
+	XMatTranspose(cb1.Projection, m_Projection);
+	cb1.LightDir[0] = LightDirs[0];
+	cb1.LightDir[1] = LightDirs[1];
+	cb1.LightColor[0] = LightColors[0];
+	cb1.LightColor[1] = LightColors[1];
+	cb1.OutputColor = XVECTOR3(0, 0, 0, 0);
+	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
+
+	m_DeviceContext->GetDC()->VSSetShader(m_VertexShader->GetShader(), NULL, 0);
+	m_DeviceContext->GetDC()->VSSetConstantBuffers(0, 1, m_ConstantBuffer->GetBuffer());
+	m_DeviceContext->GetDC()->PSSetShader(m_PixelShader->GetShader(), NULL, 0);
+	m_DeviceContext->GetDC()->PSSetConstantBuffers(0, 1, m_ConstantBuffer->GetBuffer());
+	m_DeviceContext->GetDC()->DrawIndexed(36, 0, 0);
+
+	for (int m = 0; m < 2; m++)
+	{
+		XMATRIX44 mLight;
+		XMatTranslation(mLight, LightDirs[m] * 5.0f);
+		XMATRIX44 mLightScale;
+		XMatScaling(mLightScale, 0.2f, 0.2f, 0.2f);
+		mLight = mLightScale * mLight;
+
+		XMatTranspose(cb1.World, mLight);
+		cb1.OutputColor = LightColors[m];
+		m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
+		m_DeviceContext->GetDC()->PSSetShader(m_PixelShader->GetShader(), NULL, 0);
+		m_DeviceContext->GetDC()->DrawIndexed(36, 0, 0);
+	}
+
 	m_SwapChain->Render();
 }
 
 void CGraphicsAPI::Update()
 {
+	static float t = 0.0f;
+	static DWORD dwTimeStart = 0;
 	DWORD dwTimeCur = GetTickCount();
 	if (dwTimeStart == 0)
 		dwTimeStart = dwTimeCur;
-	t = (dwTimeCur - dwTimeStart) / 10000000.0f;
-	XMatRotationYLH(m_World, t);
-	ConstantBuffer cb;
-	XMatTranspose(cb.World, m_World);
-	XMatTranspose(cb.View, m_View);
-	XMatTranspose(cb.Projection, m_Projection);
-	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb, 0, 0);
+	t = (dwTimeCur - dwTimeStart) / 100000.0f;
+
+	XMatRotationYLH(m_World, Deg2Rad(t));
+
+	XVECTOR3 LightDirs[2] =
+	{
+		XVECTOR3(-0.577f, 0.577f, -0.577f, 1.0f),
+		XVECTOR3(0.0f, 0.0f, -1.0f, 1.0f),
+	};
+	XVECTOR3 LightColors[2] =
+	{
+		XVECTOR3(0.5f, 0.5f, 0.5f, 1.0f),
+		XVECTOR3(0.5f, 0.0f, 0.0f, 1.0f)
+	};
+
+	XMATRIX44 Rotate;
+	XMatRotationYLH(Rotate, Deg2Rad(-2.0f*t));
+	XVECTOR3 LightDir = LightDirs[1];
+	XVecTransformLH(LightDirs[1], LightDir, Rotate);
+
+	ConstantBuffer cb1;
+	XMatTranspose(cb1.World, m_World);
+	XMatTranspose(cb1.View, m_View);
+	XMatTranspose(cb1.Projection, m_Projection);
+	cb1.LightDir[0] = LightDirs[0];
+	cb1.LightDir[1] = LightDirs[1];
+	cb1.LightColor[0] = LightColors[0];
+	cb1.LightColor[1] = LightColors[1];
+	cb1.OutputColor = XVECTOR3(0, 0, 0, 0);
+	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
 }
 
 void CGraphicsAPI::Clear()
@@ -159,7 +284,10 @@ void CGraphicsAPI::Clear()
 	m_IndexBuffer->clear();
 	m_InputLayout->clear();
 	m_VertexShader->Clear();
+	m_PixelShaderSolid->Clear();
 	m_PixelShader->Clear();
+	m_DepthStencil->Clear();
+	m_DepthStencilView->Clear();
 	m_RenderTargetView->Clear();
 	m_SwapChain->Clear();
 	m_DeviceContext->Clear();

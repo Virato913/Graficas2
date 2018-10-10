@@ -12,9 +12,9 @@ CDeviceContext::~CDeviceContext()
 	Clear();
 }
 
-void CDeviceContext::SetRTV(CRenderTargetView* renderTargetView)
+void CDeviceContext::SetRT(CRenderTargetView* renderTargetView, CDepthStencilView* depthStencilView)
 {
-	m_DeviceContext->OMSetRenderTargets(1, renderTargetView->GetRTV(), NULL);
+	m_DeviceContext->OMSetRenderTargets(1, renderTargetView->GetRTV(), depthStencilView->GetDSV());
 }
 
 void CDeviceContext::SetVP(CViewport* viewport)
@@ -22,10 +22,11 @@ void CDeviceContext::SetVP(CViewport* viewport)
 	m_DeviceContext->RSSetViewports(1, viewport->GetViewport());
 }
 
-void CDeviceContext::Render(CRenderTargetView* renderTargetView)
+void CDeviceContext::Render(CRenderTargetView* renderTargetView, CDepthStencilView* depthStencilView)
 {
 	float ClearColor[4] = { 0.4f,0.4f,1.0f,1.0f };
 	m_DeviceContext->ClearRenderTargetView(renderTargetView->GetRenderTargetView(), ClearColor);
+	m_DeviceContext->ClearDepthStencilView(depthStencilView->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void CDeviceContext::Draw(CVertexShader* vertexShader, CPixelShader* pixelShader, ID3D11Buffer* constantBuffer)
