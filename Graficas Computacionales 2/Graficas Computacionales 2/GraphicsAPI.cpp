@@ -3,7 +3,9 @@
 
 CGraphicsAPI::CGraphicsAPI()
 {
-	m_ConstantBuffer = new CConstantBuffer<ConstantBuffer>();
+	m_NeverChanges = new CConstantBuffer<XMATRIX44>();
+	m_ChangeOnResize = new CConstantBuffer<XMATRIX44>();
+	m_ChangesEveryFrame = new CConstantBuffer<ChangesEveryFrame>();
 	m_DepthStencilView = new CDepthStencilView();
 	m_Device = new CDevice();
 	m_DeviceContext = new CDeviceContext();
@@ -15,6 +17,7 @@ CGraphicsAPI::CGraphicsAPI()
 	m_SwapChain = new CSwapChain();
 	m_VertexBuffer = new CVertexBuffer<SimpleVertex>();
 	m_VertexShader = new CVertexShader();
+	m_MeshColor = XVECTOR3(0.7f, 0.7f, 0.7f, 1.0f);
 }
 
 CGraphicsAPI::~CGraphicsAPI()
@@ -61,7 +64,7 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 
 	m_InputLayout->reserve(2);
 	m_InputLayout->add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0);
-	m_InputLayout->add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0);
+	m_InputLayout->add("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0);
 	m_InputLayout->createInputLayout(m_Device->GetDevice(), m_VertexShader->GetBLOB()->GetBufferPointer(), m_VertexShader->GetBLOB()->GetBufferSize());
 	m_InputLayout->setInputLayout(m_DeviceContext->GetDC());
 
@@ -69,42 +72,38 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 	if (FAILED(hr))
 		return hr;
 
-	hr = m_PixelShaderSolid->CreateShader(m_Device->GetDevice(), "PSSolid");
-	if (FAILED(hr))
-		return hr;
-
 	m_VertexBuffer->reserve(8);
 	SimpleVertex vertices[] =
 	{
-		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
-		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
-		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 1.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR2(0.0f, 1.0f) },
 
-		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(0.0f, -1.0f, 0.0f) },
-		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
-		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
-		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, -1.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR2(0.0f, 1.0f) },
 
-		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(-1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(-1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR2(0.0f, 1.0f) },
 
-		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
-		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(1.0f, 0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR2(0.0f, 1.0f) },
 
-		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR3(0.0f, 0.0f, -1.0f) },
-		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
-		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR3(0.0f, 0.0f, -1.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, -1.0f), XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, -1.0f),	 XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, -1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, -1.0f),	 XVECTOR2(0.0f, 1.0f) },
 
-		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
-		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR3(0.0f, 0.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, -1.0f, 1.0f),	 XVECTOR2(0.0f, 0.0f) },
+		{ XVECTOR3(1.0f, -1.0f, 1.0f),	 XVECTOR2(1.0f, 0.0f) },
+		{ XVECTOR3(1.0f, 1.0f, 1.0f),	 XVECTOR2(1.0f, 1.0f) },
+		{ XVECTOR3(-1.0f, 1.0f, 1.0f),	 XVECTOR2(0.0f, 1.0f) },
 	};
 	m_VertexBuffer->add(vertices, 24);
 	m_VertexBuffer->createHardwareBuffer(m_Device->GetDevice());
@@ -131,13 +130,20 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 		22,20,21,
 		23,20,22
 	};
-	m_IndexBuffer->add(indices,36);
+	m_IndexBuffer->add(indices, 36);
 	m_IndexBuffer->createHardwareBuffer(m_Device->GetDevice());
 	m_IndexBuffer->setHardwareBuffer(m_DeviceContext->GetDC());
 
 	m_DeviceContext->GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	m_ConstantBuffer->createHardwareBuffer(m_Device->GetDevice());
+	m_NeverChanges->createHardwareBuffer(m_Device->GetDevice());
+	m_ChangeOnResize->createHardwareBuffer(m_Device->GetDevice());
+	m_ChangesEveryFrame->createHardwareBuffer(m_Device->GetDevice());
+
+	//Here's where the texture would be loaded
+
+
+	//And here's where the sampler would be created
 
 	XMatIdentity(m_World);
 
@@ -146,7 +152,15 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 	XVECTOR3 Up(0.0f, 1.0f, 0.0f, 0.0f);
 	XMatViewLookAtLH(m_View, Eye, At, Up);
 
+	XMATRIX44 view;
+	XMatTranspose(view, m_View);
+	m_DeviceContext->GetDC()->UpdateSubresource(m_NeverChanges->GetBufferPointer(), 0, NULL, &view, 0, 0);
+
 	XMatPerspectiveLH(m_Projection, xHALF_PI / 2.0f, width / (FLOAT)height, 0.01f, 100.0f);
+
+	XMATRIX44 projection;
+	XMatTranspose(projection, m_Projection);
+	m_DeviceContext->GetDC()->UpdateSubresource(m_ChangeOnResize->GetBufferPointer(), 0, NULL, &projection, 0, 0);
 
 	return hr;
 }
@@ -177,61 +191,30 @@ void CGraphicsAPI::Render()
 	DWORD dwTimeCur = GetTickCount();
 	if (dwTimeStart == 0)
 		dwTimeStart = dwTimeCur;
-	t = (dwTimeCur - dwTimeStart) / 100000.0f;
+	t = (dwTimeCur - dwTimeStart) / 1000.0f;
 
-	XMatRotationYLH(m_World, Deg2Rad(t));
+	XMatRotationYLH(m_World, Deg2Rad(t/100.0));
 
-	XVECTOR3 LightDirs[2] =
-	{
-		XVECTOR3(-0.577f, 0.577f, -0.577f, 1.0f),
-		XVECTOR3(0.0f, 0.0f, -1.0f, 1.0f),
-	};
-	XVECTOR3 LightColors[2] =
-	{
-		XVECTOR3(0.5f, 0.5f, 0.5f, 1.0f),
-		XVECTOR3(0.5f, 0.0f, 0.0f, 1.0f)
-	};
-
-	XMATRIX44 Rotate;
-	XMatRotationYLH(Rotate, Deg2Rad(-2.0f*t));
-	XVECTOR3 LightDir = LightDirs[1];
-	XVecTransformLH(LightDirs[1], LightDir, Rotate);
+	m_MeshColor.x = (sinf(t * 1.0f) + 1.0f) * 0.5f;
+	m_MeshColor.y = (cosf(t * 3.0f) + 1.0f) * 0.5f;
+	m_MeshColor.z = (sinf(t * 5.0f) + 1.0f) * 0.5f;
 
 	float color[4] = { 0.0f,0.125f,0.3f,1.0f };
 	m_DeviceContext->GetDC()->ClearRenderTargetView(m_RenderTargetView->GetRenderTargetView(), color);
 	m_DeviceContext->GetDC()->ClearDepthStencilView(m_DepthStencilView->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	ConstantBuffer cb1;
-	XMatTranspose(cb1.World, m_World);
-	XMatTranspose(cb1.View, m_View);
-	XMatTranspose(cb1.Projection, m_Projection);
-	cb1.LightDir[0] = LightDirs[0];
-	cb1.LightDir[1] = LightDirs[1];
-	cb1.LightColor[0] = LightColors[0];
-	cb1.LightColor[1] = LightColors[1];
-	cb1.OutputColor = XVECTOR3(0, 0, 0, 0);
-	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
+	ChangesEveryFrame cb;
+	XMatTranspose(cb.mWorld, m_World);
+	cb.vMeshColor = m_MeshColor;
+	m_DeviceContext->GetDC()->UpdateSubresource(m_ChangesEveryFrame->GetBufferPointer(), 0, NULL, &cb, 0, 0);
 
 	m_DeviceContext->GetDC()->VSSetShader(m_VertexShader->GetShader(), NULL, 0);
-	m_DeviceContext->GetDC()->VSSetConstantBuffers(0, 1, m_ConstantBuffer->GetBuffer());
+	m_DeviceContext->GetDC()->VSSetConstantBuffers(0, 1, m_NeverChanges->GetBuffer());
+	m_DeviceContext->GetDC()->VSSetConstantBuffers(1, 1, m_ChangeOnResize->GetBuffer());
+	m_DeviceContext->GetDC()->VSSetConstantBuffers(2, 1, m_ChangesEveryFrame->GetBuffer());
 	m_DeviceContext->GetDC()->PSSetShader(m_PixelShader->GetShader(), NULL, 0);
-	m_DeviceContext->GetDC()->PSSetConstantBuffers(0, 1, m_ConstantBuffer->GetBuffer());
+	m_DeviceContext->GetDC()->PSSetConstantBuffers(2, 1, m_ChangesEveryFrame->GetBuffer());
 	m_DeviceContext->GetDC()->DrawIndexed(36, 0, 0);
-
-	for (int m = 0; m < 2; m++)
-	{
-		XMATRIX44 mLight;
-		XMatTranslation(mLight, LightDirs[m] * 5.0f);
-		XMATRIX44 mLightScale;
-		XMatScaling(mLightScale, 0.2f, 0.2f, 0.2f);
-		mLight = mLightScale * mLight;
-
-		XMatTranspose(cb1.World, mLight);
-		cb1.OutputColor = LightColors[m];
-		m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
-		m_DeviceContext->GetDC()->PSSetShader(m_PixelShader->GetShader(), NULL, 0);
-		m_DeviceContext->GetDC()->DrawIndexed(36, 0, 0);
-	}
 
 	m_SwapChain->Render();
 }
@@ -263,23 +246,23 @@ void CGraphicsAPI::Update()
 	XVECTOR3 LightDir = LightDirs[1];
 	XVecTransformLH(LightDirs[1], LightDir, Rotate);
 
-	ConstantBuffer cb1;
-	XMatTranspose(cb1.World, m_World);
-	XMatTranspose(cb1.View, m_View);
-	XMatTranspose(cb1.Projection, m_Projection);
-	cb1.LightDir[0] = LightDirs[0];
-	cb1.LightDir[1] = LightDirs[1];
-	cb1.LightColor[0] = LightColors[0];
-	cb1.LightColor[1] = LightColors[1];
-	cb1.OutputColor = XVECTOR3(0, 0, 0, 0);
-	m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
+	//ConstantBuffer cb1;
+	//XMatTranspose(cb1.World, m_World);
+	//XMatTranspose(cb1.View, m_View);
+	//XMatTranspose(cb1.Projection, m_Projection);
+	//cb1.LightDir[0] = LightDirs[0];
+	//cb1.LightDir[1] = LightDirs[1];
+	//cb1.LightColor[0] = LightColors[0];
+	//cb1.LightColor[1] = LightColors[1];
+	//cb1.OutputColor = XVECTOR3(0, 0, 0, 0);
+	//m_DeviceContext->GetDC()->UpdateSubresource(m_ConstantBuffer->GetBufferPointer(), 0, NULL, &cb1, 0, 0);
 }
 
 void CGraphicsAPI::Clear()
 {
 	m_DeviceContext->ClearState();
 
-	m_ConstantBuffer->clear();
+	//m_ConstantBuffer->clear();
 	m_VertexBuffer->clear();
 	m_IndexBuffer->clear();
 	m_InputLayout->clear();

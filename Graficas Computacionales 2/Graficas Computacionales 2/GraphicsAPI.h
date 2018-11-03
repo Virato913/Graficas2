@@ -14,22 +14,30 @@
 
 struct SimpleVertex {
 	XVECTOR3 Pos;
-	XVECTOR3 Normal;
+	XVECTOR2 Tex;
 };
 
-struct ConstantBuffer {
-	XMATRIX44 World;
-	XMATRIX44 View;
-	XMATRIX44 Projection;
-	XVECTOR3 LightDir[2];
-	XVECTOR3 LightColor[2];
-	XVECTOR3 OutputColor;
+//struct ConstantBuffer {
+//	XMATRIX44 World;
+//	XMATRIX44 View;
+//	XMATRIX44 Projection;
+//	XVECTOR3 LightDir[2];
+//	XVECTOR3 LightColor[2];
+//	XVECTOR3 OutputColor;
+//};
+
+struct ChangesEveryFrame
+{
+	XMATRIX44 mWorld;
+	XVECTOR3 vMeshColor;
 };
 
 class CGraphicsAPI
 {
 private:
-	CConstantBuffer<ConstantBuffer>* m_ConstantBuffer;
+	CConstantBuffer<XMATRIX44>* m_NeverChanges;
+	CConstantBuffer<XMATRIX44>* m_ChangeOnResize;
+	CConstantBuffer<ChangesEveryFrame>* m_ChangesEveryFrame;
 	CDepthStencil* m_DepthStencil;
 	CDepthStencilView* m_DepthStencilView;
 	CDevice* m_Device;
@@ -45,6 +53,7 @@ private:
 	XMATRIX44 m_World;
 	XMATRIX44 m_View;
 	XMATRIX44 m_Projection;
+	XVECTOR3 m_MeshColor;
 
 public:
 	CGraphicsAPI();

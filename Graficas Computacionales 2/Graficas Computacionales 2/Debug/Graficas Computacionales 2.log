@@ -1,3 +1,4 @@
 ﻿  GraphicsAPI.cpp
+c:\users\casa\documents\beto\gráficas computacionales 2\graficas2\graficas computacionales 2\graficas computacionales 2\graphicsapi.cpp(196): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
   Graficas Computacionales 2.vcxproj -> C:\Users\Casa\Documents\Beto\Gráficas computacionales 2\Graficas2\Graficas Computacionales 2\Debug\Graficas Computacionales 2.exe
   Graficas Computacionales 2.vcxproj -> C:\Users\Casa\Documents\Beto\Gráficas computacionales 2\Graficas2\Graficas Computacionales 2\Debug\Graficas Computacionales 2.pdb (Full PDB)
