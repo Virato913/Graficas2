@@ -15,6 +15,7 @@ CGraphicsAPI::CGraphicsAPI()
 	m_PixelShaderSolid = new CPixelShader();
 	m_RenderTargetView = new CRenderTargetView();
 	m_SwapChain = new CSwapChain();
+	m_texture = new Texture();
 	m_VertexBuffer = new CVertexBuffer<SimpleVertex>();
 	m_VertexShader = new CVertexShader();
 	m_MeshColor = XVECTOR3(0.7f, 0.7f, 0.7f, 1.0f);
@@ -141,9 +142,9 @@ HRESULT CGraphicsAPI::Init(HWND hWnd)
 	m_ChangesEveryFrame->createHardwareBuffer(m_Device->GetDevice());
 
 	//Here's where the texture would be loaded
-
-
 	//And here's where the sampler would be created
+
+	m_texture->LoadFromFile(m_Device->GetDevice(), m_DeviceContext->GetDC());
 
 	XMatIdentity(m_World);
 

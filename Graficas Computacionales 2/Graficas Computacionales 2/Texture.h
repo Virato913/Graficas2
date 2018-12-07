@@ -2,6 +2,9 @@
 
 #include <string>
 #include <windows.h>
+#include <d3d11.h>
+#include <iostream>
+#include <fstream>
 
 #include "assimp/types.h"
 
@@ -14,6 +17,10 @@ private:
 	WORD m_id;
 	std::string m_type;
 	aiString m_path;
+	ID3D11Texture2D* m_texture;
+	ID3D11ShaderResourceView* m_shaderResource;
+	ID3D11SamplerState* m_samplerState;
+
 public:
 	Texture();
 	~Texture();
@@ -23,4 +30,5 @@ public:
 	WORD getId();
 	std::string getType();
 	aiString getPath();
+	void LoadFromFile(ID3D11Device* device, ID3D11DeviceContext* context);
 };

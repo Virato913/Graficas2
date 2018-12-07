@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "RenderTargetView.h"
 #include "Shader.h"
+#include "Texture.h"
 #include "Texture2D.h"
 #include "Viewport.h"
 
@@ -49,6 +50,7 @@ private:
 	CPixelShader* m_PixelShaderSolid;
 	CRenderTargetView* m_RenderTargetView;
 	CSwapChain* m_SwapChain;
+	Texture* m_texture;
 	CVertexBuffer<SimpleVertex>* m_VertexBuffer;
 	CVertexBuffer<Vertex>* m_ModelVertexBuffer;
 	CVertexShader* m_VertexShader;
