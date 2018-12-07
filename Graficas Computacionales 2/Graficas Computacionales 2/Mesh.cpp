@@ -2,26 +2,22 @@
 
 
 
-Mesh::Mesh(vector<XVECTOR3> position, vector<XVECTOR3> normal, vector<XVECTOR2> texCoords, vector<WORD> indices, vector<Texture> textures)
+Mesh::Mesh(vector<Vertex> vertices, vector<WORD> indices, vector<Texture> textures)
 {
-	m_position = position;
-	m_normal = normal;
-	m_texCoords = texCoords;
+	m_vertices = vertices;
 	m_indices = indices;
 	m_textures = textures;
 }
 
 Mesh::~Mesh()
 {
-	m_position.clear();
-	m_normal.clear();
-	m_texCoords.clear();
+	m_vertices.clear();
 	m_indices.clear();
 	m_textures.clear();
 }
 
-void Mesh::setUpMesh(CVertexBuffer<XVECTOR3>* vertices, CIndexBuffer<WORD>* indices)
+void Mesh::setUpMesh(CVertexBuffer<Vertex>* vertexBuffer, CIndexBuffer<WORD>* indexBuffer)
 {
-	//vertices->add(m_vertices);
-	indices->add(m_indices);
+	vertexBuffer->add(m_vertices);
+	indexBuffer->add(m_indices);
 }

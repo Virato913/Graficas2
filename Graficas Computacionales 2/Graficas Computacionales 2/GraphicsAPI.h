@@ -5,6 +5,7 @@
 #include "DeviceContext.h"
 #include "GraphicsBuffer.h"
 #include "InputLayout.h"
+#include "Model.h"
 #include "RenderTargetView.h"
 #include "Shader.h"
 #include "Texture2D.h"
@@ -49,6 +50,7 @@ private:
 	CRenderTargetView* m_RenderTargetView;
 	CSwapChain* m_SwapChain;
 	CVertexBuffer<SimpleVertex>* m_VertexBuffer;
+	CVertexBuffer<Vertex>* m_ModelVertexBuffer;
 	CVertexShader* m_VertexShader;
 	XMATRIX44 m_World;
 	XMATRIX44 m_View;
